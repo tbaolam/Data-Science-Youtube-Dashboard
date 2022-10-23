@@ -7,6 +7,21 @@ import plotly.express as px
 import streamlit as st
 from datetime import datetime
 
+#define functions
+def style_negative(v, props=''):
+    """Style negative values in dataframe"""
+    try:
+        return props if v < 0 else None
+    except:
+        pass
+
+def style_positive(v, props=''):
+    """Style positive values in dataframe"""
+    try:
+        return props if v > 0 else None
+    except:
+        pass
+
 #load data
 @st.cache
 def load_data():
@@ -66,6 +81,19 @@ if add_sidebar == 'Aggregate Metrics':
             count += 1
             if count >= 5:
                 count = 0
+
+    #get date information / trim to relevant data 
+    df_agg_diff['Publish_date'] = df_agg_diff['Video publish time'].apply(lambda x: x.date())
+    df_agg_diff_final = df_agg_diff.loc[:,['Video title','Publish_date','Views','Likes','Subscribers','Shares','Comments added','RPM(USD)','Average % viewed',
+                             'Avg_duration_sec', 'Engagement_ratio','Views / sub gained']]
+
+    df_agg_numeric_lst = df_agg_diff_final.median(numeric_only=True).index.tolist()
+    df_to_pct = {}
+    for i in df_agg_numeric_lst:
+        df_to_pct[i] = '{:.1%}'.format
+
+
+    st.dataframe(df_agg_diff_final.style.applymap(style_negative, props='color:red;').applymap(style_positive, props='color:green;').format(df_to_pct))
 
 if add_sidebar == 'Individual Video Analysis':
     st.write('Ind')
