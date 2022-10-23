@@ -22,6 +22,15 @@ def style_positive(v, props=''):
     except:
         pass
 
+def audience_simple(country):
+    """Show top represented countries"""
+    if country == 'US':
+        return 'USA'
+    elif country == 'IN':
+        return 'India'
+    else:
+        return 'Other'
+
 #load data
 @st.cache
 def load_data():
@@ -96,6 +105,18 @@ if add_sidebar == 'Aggregate Metrics':
     st.dataframe(df_agg_diff_final.style.applymap(style_negative, props='color:red;').applymap(style_positive, props='color:green;').format(df_to_pct))
 
 if add_sidebar == 'Individual Video Analysis':
-    st.write('Ind')
+    videos = tuple(df_agg['Video title'])
+    video_select = st.selectbox('Pick a Video:', videos) #parameter( *title of the box, *tuple of selections)
+
+    agg_filtered = df_agg[df_agg['Video title'] == video_select]
+    agg_sub_filtered = df_agg_sub[df_agg_sub['Video Title'] == video_select]
+    agg_sub_filtered['Country'] = agg_sub_filtered['Country Code'].apply(audience_simple)
+    agg_sub_filtered.sort_values('Is Subscribed', inplace= True)
+
+    fig = px.bar(agg_sub_filtered, x ='Views', y='Is Subscribed', color ='Country', orientation ='h') #h for horizontal bar chart
+    #order axis 
+    st.plotly_chart(fig)
+
+
 
 
